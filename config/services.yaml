@@ -7,10 +7,6 @@ parameters:
     # System parameters: https://symfony.com/doc/current/performance.html
     .container.dumper.inline_factories: true
 
-    # App parameters
-    brand: 'MicroSymfony'
-    brand_html: '<b>Micro</b>Symfony 🎶'
-
 services:
     # default configuration for services in *this* file
     _defaults:

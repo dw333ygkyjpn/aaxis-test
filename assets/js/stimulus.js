@@ -4,28 +4,6 @@ import {Application, Controller} from "@hotwired/stimulus" // reference version:
 window.Stimulus = Application.start()
 Stimulus.debug = false
 
-Stimulus.register("hello", class extends Controller {
-  static targets = ["name", "greeting", "dialog", "form"]
-
-  connect() {
-    console.log("Hello, Stimulus!", this.element)
-  }
-
-  greet() {
-    if (!this.formTarget.reportValidity()) {
-      return
-    }
-
-    this.greetingTarget.innerHTML = `Hello, ${this.nameTarget.value}!`
-    this.dialogTarget.showModal()
-  }
-
-  reset() {
-    this.nameTarget.value = ''
-    this.greetingTarget.innerHTML = ''
-  }
-})
-
 Stimulus.register("api", class extends Controller {
   static targets = ["title", "slug"]
   static values = {

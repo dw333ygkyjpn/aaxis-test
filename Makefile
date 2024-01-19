@@ -4,29 +4,22 @@ SHELL = sh
 ## —— 🎶 The MicroSymfony Makefile 🎶 ——————————————————————————————————————————
 help: ## Outputs this help screen
 	@grep -E '(^[a-zA-Z0-9_-]+:.*?##.*$$)|(^##)' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}{printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' | sed -e 's/\[32m##/[33m/'
-.PHONY: help start stop go-prod go-dev purge test coverage cov-report stan fix-php lint-php lint-container lint-twig lint-yaml cs lint ci deploy
-.PHONY: version-php version-composer version-symfony version-phpunit version-phpstan version-php-cs-fixer check-requirements
+.PHONY: help start stop purge test coverage cov-report stan fix-php lint-php lint-container lint-twig lint-yaml cs lint ci
+.PHONY: version-php version-composer version-symfony version-phpunit version-phpstan version-php-cs-fixer
 
 ## —— Symfony binary 💻 ————————————————————————————————————————————————————————
 start: ## Serve the application with the Symfony binary
-	@symfony serve --daemon
+	@docker compose build
+	@docker compose up -d
+	@symfony serve -d
+	@symfony open:local
 
 stop: ## Stop the web server
+	@docker compose down
 	@symfony server:stop
 
 
 ## —— Symfony 🎶  ——————————————————————————————————————————————————————————————
-go-prod: ## Switch to the production environment
-	@cp .env.local.dist .env.local
-	# uncomment this line to optimize the auto-loading of classes in the prod env
-	#@composer dump-autoload --no-dev --classmap-authoritative
-	@bin/console asset-map:compile
-
-go-dev: ## Switch to the development environment
-	@rm -f .env.local
-	@rm -rf ./public/assets/*
-	#@composer dump-autoload
-
 warmup: ## Warmup the dev cache for the statis analysis
 	@bin/console c:w --env=dev
 
@@ -46,7 +39,6 @@ coverage: purge
 cov-report: var/coverage/index.html ## Open the PHPUnit code coverage report (var/coverage/index.html)
 	@open var/coverage/index.html
 
-
 ## —— Coding standards/lints ✨ ————————————————————————————————————————————————
 stan: ## Run PHPStan
 	@vendor/bin/phpstan analyse -c phpstan.neon --memory-limit 1G -vvv
@@ -59,13 +51,13 @@ lint-php: PHP_CS_FIXER_ARGS=--dry-run
 lint-php: fix-php
 
 lint-container: ## Lint the Symfony DI container
-	@bin/console lint:container
+	@php bin/console lint:container
 
 lint-twig: ## Lint Twig files
-	@bin/console lint:twig templates/
+	@php bin/console lint:twig templates/
 
 lint-yaml: ## Lint YAML files
-	@bin/console lint:yaml --parse-tags config/
+	@php bin/console lint:yaml --parse-tags config/
 
 cs: ## Run all CS checks
 cs: fix-php stan
@@ -87,27 +79,14 @@ version-composer:
 	@composer --version
 version-symfony:
 	@echo '\n—— Symfony ————————————————————————————————————————————————————————'
-	@bin/console --version
+	@php bin/console --version
 version-phpunit:
 	@echo '\n—— PHPUnit (simple-phpunit) ———————————————————————————————————————'
-	@vendor/bin/simple-phpunit --version
+	@php vendor/bin/phpunit --version
 version-phpstan:
 	@echo '—— PHPStan ————————————————————————————————————————————————————————'
-	@vendor/bin/phpstan --version
+	@php vendor/bin/phpstan --version
 version-php-cs-fixer:
 	@echo '\n—— php-cs-fixer ———————————————————————————————————————————————————'
-	@vendor/bin/php-cs-fixer --version
+	@php vendor/bin/php-cs-fixer --version
 	@echo
-
-check-requirements: ## Checks requirements for running Symfony
-	@vendor/bin/requirements-checker
-
-
-## —— Deploy & Prod 🚀 —————————————————————————————————————————————————————————
-deploy: ## Simple manual deploy on VPS (this is to update the demo site https://microsymfony.ovh/)
-	@git pull
-	@composer install
-	@chown -R www-data: var/*
-	@cp .env.local.dist .env.local
-	@composer dump-env prod
-	@bin/console asset-map:compile
