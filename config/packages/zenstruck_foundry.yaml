@@ -1,0 +1,7 @@
+when@dev: &dev
+    zenstruck_foundry:
+        faker:
+            locale: en_US # set the locale
+            seed: 5678 # set the random number generator seed
+        auto_refresh_proxies: true
+when@test: *dev
