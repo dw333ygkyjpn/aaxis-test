@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\User;
 use App\Factory\ProductFactory;
+use App\Factory\UserFactory;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -16,6 +20,64 @@ class ProductBatchTest extends WebTestCase
     use ResetDatabase;
     use Factories;
 
+    private static ?UserPasswordHasherInterface $hasher = null;
+    private KernelBrowser $client;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->client = static::createClient();
+        $this->createDefaultUser();
+    }
+
+    private function createDefaultUser(): void
+    {
+        $container = $this->client->getContainer();
+
+        if (self::$hasher === null) {
+            self::$hasher = $container->get(UserPasswordHasherInterface::class);
+        }
+
+        UserFactory::createOne([
+            'username' => 'aaxis',
+            'roles' => ['ROLE_ADMIN'],
+            'password' => self::$hasher->hashPassword(new User(), 'aaxis'),
+        ]);
+    }
+
+    protected function createAuthenticatedClient(string $username = 'aaxis', string $password = 'aaxis'): void
+    {
+        /**
+         * @var string $credentials
+         */
+        $credentials = json_encode([
+            'username' => $username,
+            'password' => $password,
+        ]);
+
+        $this->client->request(
+            'POST',
+            '/api/login_check',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            $credentials
+        );
+
+        /**
+         * @var string $response
+         */
+        $response = $this->client->getResponse()->getContent();
+
+        /**
+         * @var array<string> $data
+         */
+        $data = json_decode($response, true);
+        $token = $data['token'];
+
+        $this->client->setServerParameter('HTTP_Authorization', sprintf('Bearer %s', $token));
+    }
+
     /**
      * @dataProvider provideBatchRequest
      *
@@ -23,8 +85,8 @@ class ProductBatchTest extends WebTestCase
      */
     public function testBatch(string $method, int $expectedCode, array $payload): void
     {
-        $client = static::createClient();
-        $router = $client->getContainer()->get('router');
+        $this->createAuthenticatedClient();
+        $router = $this->client->getContainer()->get('router');
 
         ProductFactory::createOne([
             'sku' => 'sku-test-1',
@@ -47,7 +109,7 @@ class ProductBatchTest extends WebTestCase
          */
         $payload = json_encode($payload);
 
-        $client->request(
+        $this->client->request(
             $method,
             $router->generate('product_batch_job'),
             [],
