@@ -8,7 +8,9 @@ help: ## Outputs this help screen
 .PHONY: version-php version-composer version-symfony version-phpunit version-phpstan version-php-cs-fixer
 
 build: ## Build the application :)
-build: build-docker build-database build-test-database start
+build: build-project build-docker build-database build-test-database start
+build-project:
+	@composer install
 build-docker: ## Build the docker container
 	@docker compose build --no-cache
 	@docker compose up --pull always -d --wait
@@ -25,7 +27,6 @@ build-test-database: ## Build the test database
 ## —— Symfony binary 💻 ————————————————————————————————————————————————————————
 start: ## Serve the application with the Symfony binary
 	@sudo symfony serve -d
-	@symfony open:local
 
 stop: ## Stop the web server
 	@symfony server:stop
