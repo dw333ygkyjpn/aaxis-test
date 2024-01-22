@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\User;
 use App\Factory\ProductFactory;
+use App\Factory\UserFactory;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -15,9 +19,60 @@ class ProductTest extends WebTestCase
     use ResetDatabase;
     use Factories;
 
-    public function testGetProduct(): void
+    private static ?UserPasswordHasherInterface $hasher = null;
+
+    protected function createAuthenticatedClient(string $username = 'aaxis', string $password = 'aaxis'): KernelBrowser
     {
         $client = static::createClient();
+        $container = $client->getContainer();
+
+        if (self::$hasher === null) {
+            self::$hasher = $container->get(UserPasswordHasherInterface::class);
+        }
+
+        UserFactory::createOne([
+            'username' => 'aaxis',
+            'roles' => ['ROLE_ADMIN'],
+            'password' => self::$hasher->hashPassword(new User(), 'aaxis'),
+        ]);
+
+        /**
+         * @var string $credentials
+         */
+        $credentials = json_encode([
+            'username' => $username,
+            'password' => $password,
+        ]);
+
+        $client->request(
+            'POST',
+            '/api/login_check',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            $credentials
+        );
+
+        /**
+         * @var string $response
+         */
+        $response = $client->getResponse()->getContent();
+
+        /**
+         * @var array<string> $data
+         */
+        $data = json_decode($response, true);
+        $token = $data['token'];
+
+        $client->setServerParameter('HTTP_Authorization', sprintf('Bearer %s', $token));
+
+        return $client;
+    }
+
+    public function testGetProduct(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
         $product = ProductFactory::createOne([
             'sku' => 'sku-test',
             'name' => 'test',
@@ -40,7 +95,7 @@ class ProductTest extends WebTestCase
 
     public function testGetCollection(): void
     {
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         ProductFactory::createMany(10);
 
         $router = $client->getContainer()->get('router');
@@ -57,7 +112,7 @@ class ProductTest extends WebTestCase
      */
     public function testPost(int $expectedCode, array $payload): void
     {
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $router = $client->getContainer()->get('router');
 
         /**
@@ -84,7 +139,7 @@ class ProductTest extends WebTestCase
      */
     public function testPut(int $expectedCode, array $payload): void
     {
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         ProductFactory::createOne([
             'sku' => 'sku-test',
             'name' => 'test',
@@ -119,7 +174,7 @@ class ProductTest extends WebTestCase
      */
     public function testPatch(int $expectedCode, array $payload): void
     {
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         ProductFactory::createOne([
             'sku' => 'sku-test',
             'name' => 'test',
