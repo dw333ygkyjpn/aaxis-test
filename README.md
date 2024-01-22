@@ -10,7 +10,7 @@ This is a Symfony test project created for the hiring process at AAXIS.
 - Docker Compose
 - Symfony Stimulus
 
-![current-stack]()
+![current-stack.png](public/imgs/current-stack.png)
 
 ## Requirements
 
@@ -49,12 +49,36 @@ The application will be accessible at [https://localhost:8000/](https://localhos
 
 ### POC
 
+PS: Didnt have time to make the documentation more pretty.
+
+### Get Token
+      Endpoint: POST /api/login_check
+      Description: Get a JWT token for authentication, required for all endpoints.
+      Default user: aaxis
+      Default password: aaxis
+      Use the token in the authorization header "Authorization: Bearer {token}"
+Request
+```bash
+curl -X POST -H "Content-Type: application/json" https://localhost/api/login_check -d '{"username":"aaxis","password":"aaxis"}'
+```
+Response
+
+200:
+```json
+{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...."}
+```
+
+401:
+```json
+{"code":401,"message":"Invalid credentials."}
+```
+
 ### Get Product Collection
     Endpoint: GET /api/products
     Description: Retrieve a collection of products.
 Request
 ```bash
-curl 'https://localhost:8000/api/products' -H 'Accept: application/json'
+curl 'https://localhost:8000/api/products' -H 'Accept: application/json' -H 'Authorization: Bearer {token}'
 ```
 Responses
 ```json
@@ -87,7 +111,7 @@ Responses
     Description: Retrieve product resource.
 Request
 ```bash
-curl 'https://localhost:8000/api/products/product-sku' -H 'Accept: application/json'
+curl 'https://localhost:8000/api/products/product-sku' -H 'Accept: application/json' -H 'Authorization: Bearer {token}'
 ```
 Response
 ```json
@@ -111,7 +135,7 @@ Response
     Description: Creates product resource.
 Request
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"sku":"new-sku","name":"New Product","description":"New Description"}' http://localhost:8000/api/products
+curl -X POST -H "Content-Type: application/json" -d '{"sku":"new-sku","name":"New Product","description":"New Description"}' -H 'Authorization: Bearer {token}' http://localhost:8000/api/products
 ```
 Responses:
 
@@ -136,7 +160,7 @@ Responses:
     Description: Updates a product resource.
 Request
 ```bash
-curl -X PUT -H "Content-Type: application/json" -d '{"sku":"existing-sku","name":"Updated Product","description":"Updated Description"}' http://localhost:8000/api/products
+curl -X PUT -H "Content-Type: application/json" -d '{"sku":"existing-sku","name":"Updated Product","description":"Updated Description"}' -H 'Authorization: Bearer {token}' http://localhost:8000/api/products
 ```
 Responses:
 
@@ -161,7 +185,7 @@ Responses:
     Description: Partialy updates a product resource.
 Request
 ```bash
-curl -X PATCH -H "Content-Type: application/json" -d '{"sku":"existing-sku","name":"Patched Product"}' http://localhost:8000/api/products
+curl -X PATCH -H "Content-Type: application/json" -d '{"sku":"existing-sku","name":"Patched Product"}' -H 'Authorization: Bearer {token}' http://localhost:8000/api/products
 ```
 Responses:
 
@@ -183,10 +207,11 @@ Responses:
 
 ### Run batch job 
     Endpoint: PATCH|POST|PUT /api/products
-    Description: Runs a batch PATCH, POST OR PUT for the resources.
+    Description: Runs a batch PATCH, POST OR PUT for the resources sent on the json payload-
+    follows the same structure for the corresponding action
 Request
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '[{"sku":"sku-1","name":"Product 1"},{"sku":"sku-2","name":"Product 2"}]' http://localhost:8000/api/products/batch
+curl -X POST -H "Content-Type: application/json" -d '[{"sku":"sku-1","name":"Product 1"},{"sku":"sku-2","name":"Product 2"}]' -H 'Authorization: Bearer {token}' http://localhost:8000/api/products/batch
 ```
 Responses:
 
@@ -268,8 +293,7 @@ To view available commands, run:
 ```bash
 make help
 ```
-![current-make-help]()
-
+![make-help.png](public/imgs/make-help.png)
 ### Test
 You can run all the phpunit test using:
 
@@ -305,19 +329,18 @@ make stan
 ```
 The current output of the analysis:
 
-![current-stan]()
+![current-stan.png](public/imgs/current-stan.png)
 
 #### CS Rules
 The project utilizes PHP-cs-fixer to follow the symfony standards and some common php standards
-The current ruleset:
-
-![php-cs-ruleset]()
+The ruleset is defined in `.php-cs-fixer.dist.php`
 
 #### Linting
 You can check if the code follows the symfony best practices with the symfony lint commands, the make file has some
 shortcuts to run these checks
 
-![]()
+![make-lint.png](public/imgs/make-lint.png)
+
 `make lint` runs all the above commands
 
 #### CI

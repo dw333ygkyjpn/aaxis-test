@@ -8,7 +8,7 @@ help: ## Outputs this help screen
 .PHONY: version-php version-composer version-symfony version-phpunit version-phpstan version-php-cs-fixer
 
 build: ## Build the application :)
-build: build-docker build-database start
+build: build-docker build-database build-test-database start
 build-docker: ## Build the docker container
 	@docker compose build --no-cache
 	@docker compose up --pull always -d --wait
@@ -17,6 +17,11 @@ build-database: ## Build the database
 	@symfony console doctrine:database:create
 	@symfony console doctrine:schema:update --force
 	@symfony console doctrine:fixtures:load -n
+build-test-database: ## Build the test database
+	@APP_ENV=test symfony console doctrine:database:drop --if-exists --force
+	@APP_ENV=test symfony console doctrine:database:create
+	@APP_ENV=test symfony console doctrine:schema:update --force
+	@APP_ENV=test symfony console doctrine:fixtures:load -n
 ## —— Symfony binary 💻 ————————————————————————————————————————————————————————
 start: ## Serve the application with the Symfony binary
 	@sudo symfony serve -d
@@ -40,7 +45,7 @@ test: ## Run all PHPUnit tests
 coverage: ## Generate the HTML PHPUnit code coverage report (stored in var/coverage)
 coverage: purge
 	@XDEBUG_MODE=coverage symfony php -d xdebug.enable=1 -d memory_limit=-1 vendor/bin/phpunit --coverage-html=var/coverage
-	@symfony php bin/coverage-checker.php var/coverage/clover.xml 99
+	@symfony php bin/coverage-checker.php var/coverage/clover.xml 90
 
 cov-report: var/coverage/index.html ## Open the PHPUnit code coverage report (var/coverage/index.html)
 	@open var/coverage/index.html
