@@ -17,7 +17,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -120,7 +119,7 @@ class ProductController extends AbstractController
                 $responses[] = $response = $this->productManager->updateProduct($productDTO, $method);
             }
 
-            if($response['status'] != Response::HTTP_OK){
+            if ($response['status'] != Response::HTTP_OK) {
                 $batchStatus = Response::HTTP_MULTI_STATUS;
             }
         }

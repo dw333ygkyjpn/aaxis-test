@@ -64,7 +64,6 @@ class ProductBatchTest extends WebTestCase
      */
     public static function provideBatchRequest(): iterable
     {
-
         $payloadPost = [
             [
                 'sku' => 'sku-test-4',
@@ -91,7 +90,6 @@ class ProductBatchTest extends WebTestCase
             ],
         ];
         yield 'failed-post' => [Request::METHOD_POST, Response::HTTP_MULTI_STATUS, $payloadPostFailed];
-
 
         $payloadPostFailed2 = [
             [
@@ -137,7 +135,7 @@ class ProductBatchTest extends WebTestCase
         yield 'empty-post' => [Request::METHOD_POST, Response::HTTP_BAD_REQUEST, $payloadEmpty];
 
         $payloadNotArray = [
-            'string' => 'string'
+            'string' => 'string',
         ];
         yield 'not-array-post' => [Request::METHOD_POST, Response::HTTP_BAD_REQUEST, $payloadNotArray];
 
@@ -146,7 +144,7 @@ class ProductBatchTest extends WebTestCase
                 'sku' => 'sku-test-9',
                 'name' => 'this product does not exist',
                 'description' => 'this should fail',
-            ]
+            ],
         ];
         yield 'fail-put' => [Request::METHOD_PUT, Response::HTTP_MULTI_STATUS, $payloadFailPut];
     }
