@@ -22,6 +22,9 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
 
     steps:
+      -   
+        name: Add SetEnvIf Rule to Apache Configuration
+        run: echo "SetEnvIf Authorization \"(.*)\" HTTP_AUTHORIZATION=$1" | sudo tee -a /etc/apache2/sites-available/000-default.conf
       - name: Checkout Repository
         uses: actions/checkout@v2
 
