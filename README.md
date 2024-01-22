@@ -47,6 +47,212 @@ The application will be accessible at [https://localhost:8000/](https://localhos
 
 ## Application overview
 
+### POC
+
+### Get Product Collection
+    Endpoint: GET /api/products
+    Description: Retrieve a collection of products.
+Request
+```bash
+curl 'https://localhost:8000/api/products' -H 'Accept: application/json'
+```
+Responses
+```json
+{
+    "title": "OK!",
+    "status": 200,
+    "data": [
+        {
+            "id": 1,
+            "sku": "product-sku",
+            "name": "Product Name",
+            "description": "Product Description",
+            "createdAt": "2022-01-01T12:00:00Z",
+            "updatedAt": "2022-01-01T12:00:00Z"
+        },
+       {
+          "id": 2,
+          "sku": "product-sku",
+          "name": "Product Name",
+          "description": "Product Description",
+          "createdAt": "2022-01-01T12:00:00Z",
+          "updatedAt": "2022-01-01T12:00:00Z"
+       }
+    ]
+}
+```
+
+### Get Product
+    Endpoint: GET /api/products/{sku}
+    Description: Retrieve product resource.
+Request
+```bash
+curl 'https://localhost:8000/api/products/product-sku' -H 'Accept: application/json'
+```
+Response
+```json
+{
+   "title": "OK!",
+   "status": 200,
+   "data": {
+      "id": 1,
+      "sku": "product-sku",
+      "name": "Product Name",
+      "description": "Product Description",
+      "createdAt": "2022-01-01T12:00:00Z",
+      "updatedAt": "2022-01-01T12:00:00Z"
+   }
+}
+
+```
+
+### Post Product
+    Endpoint: POST /api/products
+    Description: Creates product resource.
+Request
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"sku":"new-sku","name":"New Product","description":"New Description"}' http://localhost:8000/api/products
+```
+Responses:
+
+200:
+```json
+{
+   "title": "Resource created!",
+   "status": 200,
+   "data": {
+      "id": 2,
+      "sku": "new-sku",
+      "name": "New Product",
+      "description": "New Description",
+      "createdAt": "2022-01-01T12:00:00Z",
+      "updatedAt": "2022-01-01T12:00:00Z"
+   }
+}
+```
+
+### Update Product
+    Endpoint: PUT /api/products
+    Description: Updates a product resource.
+Request
+```bash
+curl -X PUT -H "Content-Type: application/json" -d '{"sku":"existing-sku","name":"Updated Product","description":"Updated Description"}' http://localhost:8000/api/products
+```
+Responses:
+
+200:
+```json
+{
+   "title": "Resource updated!",
+   "status": 200,
+   "data": {
+      "id": 1,
+      "sku": "existing-sku",
+      "name": "Updated Product",
+      "description": "Updated Description",
+      "createdAt": "2022-01-01T12:00:00Z",
+      "updatedAt": "2022-01-02T12:00:00Z"
+   }
+}
+```
+
+### Patch Product
+    Endpoint: PATCH /api/products
+    Description: Partialy updates a product resource.
+Request
+```bash
+curl -X PATCH -H "Content-Type: application/json" -d '{"sku":"existing-sku","name":"Patched Product"}' http://localhost:8000/api/products
+```
+Responses:
+
+200:
+```json
+{
+   "title": "Resource updated!",
+   "status": 200,
+   "data": {
+      "id": 1,
+      "sku": "existing-sku",
+      "name": "Patched Product",
+      "description": "same Description",
+      "createdAt": "2022-01-01T12:00:00Z",
+      "updatedAt": "2022-01-02T12:00:00Z"
+   }
+}
+```
+
+### Run batch job 
+    Endpoint: PATCH|POST|PUT /api/products
+    Description: Runs a batch PATCH, POST OR PUT for the resources.
+Request
+```bash
+curl -X POST -H "Content-Type: application/json" -d '[{"sku":"sku-1","name":"Product 1"},{"sku":"sku-2","name":"Product 2"}]' http://localhost:8000/api/products/batch
+```
+Responses:
+
+200 Resources created:
+```json
+[
+   {
+      "id": "sku-1",
+      "title": "Resource created!",
+      "status": 200,
+      "data": {
+         "id": 32,
+         "sku": "sku-1",
+         "name": "Product 1",
+         "description": null,
+         "created_at": "2024-01-22T07:18:38+00:00",
+         "updated_at": "2024-01-22T07:18:38+00:00"
+      }
+   },
+   {
+      "id": "sku-2",
+      "title": "Resource created!",
+      "status": 200,
+      "data": {
+         "id": 32,
+         "sku": "sku-2",
+         "name": "Product 2",
+         "description": null,
+         "created_at": "2024-01-22T07:18:38+00:00",
+         "updated_at": "2024-01-22T07:18:38+00:00"
+      }
+   }
+]
+```
+
+207 Multi status:
+```json
+[
+   {
+      "id": "sku-1",
+      "title": "Resource created!",
+      "status": 200,
+      "data": {
+         "id": 32,
+         "sku": "sku-1",
+         "name": "Product 1",
+         "description": null,
+         "created_at": "2024-01-22T07:18:38+00:00",
+         "updated_at": "2024-01-22T07:18:38+00:00"
+      }
+   },
+   {
+      "id": "sku-1",
+      "title": "Unprocessable resource",
+      "status": 422,
+      "violations": [
+         {
+            "path": "sku",
+            "message": "This value is already used.",
+            "invalid_value": "sku-1"
+         }
+      ]
+   }
+]
+```
+
 ### Docker Setup
 
 The Docker container is configured with Compose and includes the database and Adminer, accessible at [http://localhost:8080/](http://localhost:8080/).

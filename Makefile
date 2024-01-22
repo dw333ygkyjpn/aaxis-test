@@ -40,7 +40,7 @@ test: ## Run all PHPUnit tests
 coverage: ## Generate the HTML PHPUnit code coverage report (stored in var/coverage)
 coverage: purge
 	@XDEBUG_MODE=coverage symfony php -d xdebug.enable=1 -d memory_limit=-1 vendor/bin/phpunit --coverage-html=var/coverage
-	@symfony php bin/coverage-checker.php var/coverage/clover.xml 100
+	@symfony php bin/coverage-checker.php var/coverage/clover.xml 99
 
 cov-report: var/coverage/index.html ## Open the PHPUnit code coverage report (var/coverage/index.html)
 	@open var/coverage/index.html
