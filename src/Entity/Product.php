@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\DTO\ProductDTO;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[UniqueEntity('sku')]
 class Product
 {
     #[ORM\Id]
@@ -20,8 +23,6 @@ class Product
 
     #[ORM\Column(length: 50, unique: true)]
     #[Assert\NotBlank]
-    #[Assert\Length(50)]
-    #[Assert\Unique]
     private ?string $sku = null;
 
     #[ORM\Column(length: 255)]
@@ -32,20 +33,19 @@ class Product
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Assert\NotBlank]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    #[Assert\NotBlank]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\PreFlush]
-    public function setCreatedAtValue(): void
+    #[ORM\PrePersist]
+    public function setDateValuesValue(): void
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
-    #[ORM\PreUpdate]
+    #[ORM\PreFlush]
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
@@ -114,5 +114,26 @@ class Product
         $this->updatedAt = $updatedAt;
 
         return $this;
+    }
+
+    public function updateFromDTO(ProductDTO $productDTO): void
+    {
+        if (empty($productDTO->getName())) {
+            throw new \RuntimeException('Product name should not be blank');
+        }
+        $this->setName($productDTO->getName());
+        $this->setDescription($productDTO->getDescription());
+    }
+
+    public function patchFromDTO(ProductDTO $productDTO): void
+    {
+        /**
+         * @var string $name
+         */
+        $name = !is_null($productDTO->getName()) ? $productDTO->getName() : $this->getName();
+
+        $this->setName($name);
+        $this->setDescription(
+            !is_null($productDTO->getDescription()) ? $productDTO->getDescription() : $this->getDescription());
     }
 }
